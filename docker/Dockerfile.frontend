@@ -6,16 +6,17 @@ WORKDIR /app
 # Copy package files
 COPY frontend/package*.json ./
 
+# Install dependencies
+RUN npm install
+
 # Development stage
 FROM base AS development
-RUN npm ci
 COPY frontend/ .
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
 
 # Build stage
 FROM base AS build
-RUN npm ci
 COPY frontend/ .
 RUN npm run build
 

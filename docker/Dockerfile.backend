@@ -23,18 +23,18 @@ COPY backend/package*.json ./
 COPY backend/tsconfig.json ./
 
 # Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Development stage
 FROM base AS development
-RUN npm ci
+RUN npm install
 COPY backend/ .
 EXPOSE 3001
 CMD ["npm", "run", "dev"]
 
 # Build stage
 FROM base AS build
-RUN npm ci
+RUN npm install
 COPY backend/ .
 RUN npm run build
 RUN npm prune --production
