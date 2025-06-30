@@ -148,6 +148,27 @@ services:
     profiles:
       - ssl
 
+  # Prometheus Monitoring
+  prometheus:
+    extends:
+      file: docker-compose.yml
+      service: prometheus
+    container_name: esports_prometheus_prod
+
+  # Grafana Dashboard
+  grafana:
+    extends:
+      file: docker-compose.yml
+      service: grafana
+    container_name: esports_grafana_prod
+
+  # Elasticsearch for Logs
+  elasticsearch:
+    extends:
+      file: docker-compose.yml
+      service: elasticsearch
+    container_name: esports_elasticsearch_prod
+
   # Log Aggregation
   filebeat:
     image: docker.elastic.co/beats/filebeat:8.11.0
