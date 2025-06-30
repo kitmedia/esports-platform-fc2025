@@ -29,6 +29,17 @@ services:
       INSTANCE_ID: backend-3
     ports: []  # Remove port mapping for load balancing
 
+  # Frontend Service
+  frontend:
+    extends:
+      file: docker-compose.yml
+      service: frontend
+    container_name: esports_frontend_prod
+    environment:
+      REACT_APP_API_URL: http://164.92.239.38:3001/api
+      REACT_APP_WS_URL: ws://164.92.239.38:3001
+    ports: []  # Nginx will handle frontend traffic
+
   # Production NGINX Load Balancer
   nginx:
     image: nginx:alpine
