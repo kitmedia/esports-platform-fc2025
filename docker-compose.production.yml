@@ -43,6 +43,7 @@ services:
       INSTANCE_ID: backend-1
       DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
+    ports: []
     
   backend-2:
     extends:
