@@ -51,11 +51,6 @@ services:
       INSTANCE_ID: backend-1
       DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     
   backend-2:
     extends:
@@ -67,11 +62,6 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
     ports: []
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
 
   backend-3:
     extends:
@@ -83,11 +73,6 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
     ports: []
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
 
   # Frontend Service
   frontend:
@@ -100,8 +85,6 @@ services:
       REACT_APP_WS_URL: ws://164.92.239.38:3001
       REACT_APP_STRIPE_PUBLIC_KEY: ${REACT_APP_STRIPE_PUBLIC_KEY:-}
     ports: []
-    depends_on:
-      - backend-1
 
   # Production NGINX Load Balancer
   nginx:
@@ -141,8 +124,6 @@ services:
       file: docker-compose.yml
       service: grafana
     container_name: esports_grafana_prod
-    depends_on:
-      - prometheus
 
   # Elasticsearch for Logs
   elasticsearch:
@@ -157,8 +138,6 @@ services:
       file: docker-compose.yml
       service: kibana
     container_name: esports_kibana_prod
-    depends_on:
-      - elasticsearch
 
   # Automated Backup Service
   backup:
