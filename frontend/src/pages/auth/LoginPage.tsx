@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import { useAuthStore } from '@/stores/authStore'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { useAuthStore } from '../../stores/authStore'
+import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
 const loginSchema = z.object({
   identifier: z.string().min(1, 'Email or username is required'),

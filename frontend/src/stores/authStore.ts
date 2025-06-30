@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { authApi } from '@/services/api'
+import { authApi } from '../services/api'
 import toast from 'react-hot-toast'
 
 interface User {
@@ -27,7 +27,7 @@ interface AuthActions {
   register: (data: RegisterData) => Promise<void>
   logout: () => void
   refreshAuth: () => Promise<void>
-  initializeAuth: () => void
+  checkAuth: () => void
   updateUser: (updates: Partial<User>) => void
 }
 
@@ -125,7 +125,7 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      initializeAuth: () => {
+      checkAuth: () => {
         set({ isLoading: true })
         
         const { token, user } = get()

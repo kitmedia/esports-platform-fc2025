@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom'
 import { ArrowRightIcon, TrophyIcon, UserGroupIcon, ChartBarIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { useQuery } from '@tanstack/react-query'
-import { tournamentApi } from '@/services/api'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { tournamentApi } from '../services/api'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const features = [
   {

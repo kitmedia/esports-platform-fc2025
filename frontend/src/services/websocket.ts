@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client'
-import { useAuthStore } from '@/stores/authStore'
+import { useAuthStore } from '../stores/authStore'
 import toast from 'react-hot-toast'
 
 class WebSocketService {
