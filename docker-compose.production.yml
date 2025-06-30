@@ -41,6 +41,17 @@ services:
       - redis-master
     ports: []
 
+  # Backend Service (primary instance for compatibility)
+  backend:
+    extends:
+      file: docker-compose.yml
+      service: backend
+    container_name: esports_backend_main
+    environment:
+      INSTANCE_ID: backend-main
+      DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
+
   # Backend Instance 1
   backend-1:
     extends:
@@ -99,6 +110,7 @@ services:
       - "80:80"
       - "443:443"
     depends_on:
+      - backend
       - backend-1
       - backend-2
       - backend-3
