@@ -158,7 +158,34 @@ services:
       - logging
 
 volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  uploads_data:
+    driver: local
+  logs_data:
+    driver: local
+  recordings_data:
+    driver: local
+  clips_data:
+    driver: local
+  thumbnails_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
   postgres_backup:
     driver: local
   minio_data:
     driver: local
+
+networks:
+  esports_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
