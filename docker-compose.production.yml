@@ -1,0 +1,164 @@
+# EA SPORTS FC 2025 eSports Platform - Production Docker Compose
+version: '3.8'
+
+services:
+  # Multiple Backend Instances for Load Balancing
+  backend-1:
+    extends:
+      file: docker-compose.yml
+      service: backend
+    container_name: esports_backend_1
+    environment:
+      INSTANCE_ID: backend-1
+    
+  backend-2:
+    extends:
+      file: docker-compose.yml
+      service: backend
+    container_name: esports_backend_2
+    environment:
+      INSTANCE_ID: backend-2
+    ports: []  # Remove port mapping for load balancing
+
+  backend-3:
+    extends:
+      file: docker-compose.yml
+      service: backend
+    container_name: esports_backend_3
+    environment:
+      INSTANCE_ID: backend-3
+    ports: []  # Remove port mapping for load balancing
+
+  # Production NGINX Load Balancer
+  nginx:
+    image: nginx:alpine
+    container_name: esports_nginx_lb
+    restart: unless-stopped
+    volumes:
+      - ./docker/nginx-production.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - /var/log/nginx:/var/log/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend-1
+      - backend-2
+      - backend-3
+      - frontend
+    networks:
+      - esports_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cluster for High Availability
+  redis-master:
+    extends:
+      file: docker-compose.yml
+      service: redis
+    container_name: esports_redis_master
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --masterauth ${REDIS_PASSWORD}
+
+  redis-replica:
+    extends:
+      file: docker-compose.yml
+      service: redis
+    container_name: esports_redis_replica
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --masterauth ${REDIS_PASSWORD} --replicaof redis-master 6379
+    depends_on:
+      - redis-master
+    ports: []
+
+  # PostgreSQL with Backup
+  postgres:
+    extends:
+      file: docker-compose.yml
+      service: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_backup:/var/lib/postgresql/backup
+      - ./database/init:/docker-entrypoint-initdb.d
+      - ./scripts/backup-postgres.sh:/usr/local/bin/backup-postgres.sh
+
+  # Automated Backup Service
+  backup:
+    image: postgres:15-alpine
+    container_name: esports_backup
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-esports_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-esports_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-esports_password}
+      BACKUP_SCHEDULE: "0 2 * * *"  # Daily at 2 AM
+      BACKUP_RETENTION_DAYS: 30
+    volumes:
+      - postgres_backup:/backup
+      - ./scripts/backup-cron.sh:/usr/local/bin/backup-cron.sh
+    command: ["/usr/local/bin/backup-cron.sh"]
+    depends_on:
+      - postgres
+    networks:
+      - esports_network
+
+  # File Storage Service (MinIO S3-compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: esports_minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    networks:
+      - esports_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # SSL Certificate Management (Let's Encrypt)
+  certbot:
+    image: certbot/certbot:latest
+    container_name: esports_certbot
+    volumes:
+      - ./ssl:/etc/letsencrypt
+      - ./ssl-challenge:/var/www/certbot
+    command: certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos --no-eff-email -d ${DOMAIN_NAME}
+    profiles:
+      - ssl
+
+  # Log Aggregation
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: esports_filebeat
+    restart: unless-stopped
+    user: root
+    volumes:
+      - ./monitoring/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/log:/var/log:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - esports_network
+    profiles:
+      - logging
+
+volumes:
+  postgres_backup:
+    driver: local
+  minio_data:
+    driver: local

@@ -1,0 +1,47 @@
+# EA SPORTS FC 2025 eSports Platform - Frontend Dockerfile
+FROM node:20-alpine AS base
+
+WORKDIR /app
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Development stage
+FROM base AS development
+RUN npm ci
+COPY frontend/ .
+EXPOSE 3000
+CMD ["npm", "run", "dev"]
+
+# Build stage
+FROM base AS build
+RUN npm ci
+COPY frontend/ .
+RUN npm run build
+
+# Production stage - Nginx
+FROM nginx:alpine AS production
+
+# Install curl for health checks
+RUN apk add --no-cache curl
+
+# Copy custom nginx config
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY docker/default.conf /etc/nginx/conf.d/default.conf
+
+# Copy built app
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copy SSL certificates (if using HTTPS)
+# COPY ssl/ /etc/nginx/ssl/
+
+# Create nginx user
+RUN adduser -D -s /bin/sh nginx
+
+EXPOSE 80 443
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/health || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]

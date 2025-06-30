@@ -1,0 +1,84 @@
+# EA SPORTS FC 2025 eSports Platform - Backend Dockerfile
+FROM node:20-alpine AS base
+
+# Install dependencies needed for native modules
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
+
+WORKDIR /app
+
+# Copy package files
+COPY backend/package*.json ./
+COPY backend/tsconfig.json ./
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Development stage
+FROM base AS development
+RUN npm ci
+COPY backend/ .
+EXPOSE 3001
+CMD ["npm", "run", "dev"]
+
+# Build stage
+FROM base AS build
+RUN npm ci
+COPY backend/ .
+RUN npm run build
+RUN npm prune --production
+
+# Production stage
+FROM node:20-alpine AS production
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    cairo \
+    jpeg \
+    pango \
+    musl \
+    giflib \
+    pixman \
+    pangomm \
+    libjpeg-turbo \
+    freetype \
+    ttf-dejavu
+
+# Create app user
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S esports -u 1001
+
+WORKDIR /app
+
+# Copy built application
+COPY --from=build --chown=esports:nodejs /app/dist ./dist
+COPY --from=build --chown=esports:nodejs /app/node_modules ./node_modules
+COPY --from=build --chown=esports:nodejs /app/package.json ./package.json
+
+# Copy Prisma files
+COPY --from=build --chown=esports:nodejs /app/prisma ./prisma
+
+# Create directories for uploads and logs
+RUN mkdir -p /app/uploads /app/logs /app/recordings /app/clips /app/thumbnails
+RUN chown -R esports:nodejs /app
+
+USER esports
+
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node dist/healthcheck.js
+
+CMD ["node", "dist/server.js"]
