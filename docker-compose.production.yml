@@ -22,50 +22,16 @@ services:
     container_name: esports_redis_prod
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
 
-  # Backend Service (primary instance for compatibility)
+  # Backend Service
   backend:
     extends:
       file: docker-compose.yml
       service: backend
-    container_name: esports_backend_main
+    container_name: esports_backend
     environment:
       INSTANCE_ID: backend-main
       DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
       REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
-
-  # Backend Instance 1
-  backend-1:
-    extends:
-      file: docker-compose.yml
-      service: backend
-    container_name: esports_backend_1
-    environment:
-      INSTANCE_ID: backend-1
-      DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
-    ports: []
-    
-  backend-2:
-    extends:
-      file: docker-compose.yml
-      service: backend
-    container_name: esports_backend_2
-    environment:
-      INSTANCE_ID: backend-2
-      DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
-    ports: []
-
-  backend-3:
-    extends:
-      file: docker-compose.yml
-      service: backend
-    container_name: esports_backend_3
-    environment:
-      INSTANCE_ID: backend-3
-      DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
-    ports: []
 
   # Frontend Service
   frontend:
@@ -93,9 +59,6 @@ services:
       - "443:443"
     depends_on:
       - backend
-      - backend-1
-      - backend-2
-      - backend-3
       - frontend
     networks:
       - esports_network
