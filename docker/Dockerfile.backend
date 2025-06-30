@@ -53,7 +53,8 @@ RUN apk add --no-cache \
     pangomm \
     libjpeg-turbo \
     freetype \
-    ttf-dejavu
+    ttf-dejavu \
+    wget
 
 # Create app user
 RUN addgroup -g 1001 -S nodejs
@@ -66,9 +67,6 @@ COPY --from=build --chown=esports:nodejs /app/dist ./dist
 COPY --from=build --chown=esports:nodejs /app/node_modules ./node_modules
 COPY --from=build --chown=esports:nodejs /app/package.json ./package.json
 
-# Copy Prisma files
-COPY --from=build --chown=esports:nodejs /app/prisma ./prisma
-
 # Create directories for uploads and logs
 RUN mkdir -p /app/uploads /app/logs /app/recordings /app/clips /app/thumbnails
 RUN chown -R esports:nodejs /app
@@ -79,6 +77,6 @@ EXPOSE 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD node dist/healthcheck.js
+    CMD wget --quiet --tries=1 --spider http://localhost:3001/health || exit 1
 
 CMD ["node", "dist/server.js"]
