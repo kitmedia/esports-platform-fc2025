@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { api } from '@/services/api'
-import { Tournament, TournamentParticipant, Match } from '@/types'
+import { api } from '../services/api'
+import { Tournament, TournamentParticipant, Match } from '../types'
 
 interface TournamentState {
   tournaments: Tournament[]

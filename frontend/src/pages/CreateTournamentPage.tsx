@@ -11,8 +11,8 @@ import {
   UserGroupIcon,
   InformationCircleIcon 
 } from '@heroicons/react/24/outline'
-import { tournamentApi } from '@/services/api'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { tournamentApi } from '../services/api'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const createTournamentSchema = z.object({
   name: z.string().min(3, 'Tournament name must be at least 3 characters'),

@@ -10,8 +10,8 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
-import { paymentApi } from '@/services/api'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { paymentApi } from '../../services/api'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 const paymentSchema = z.object({
   cardNumber: z.string().min(16, 'Card number must be 16 digits').max(19),

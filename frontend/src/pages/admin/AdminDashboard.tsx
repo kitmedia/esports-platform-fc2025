@@ -13,8 +13,8 @@ import {
   BellIcon,
   CogIcon
 } from '@heroicons/react/24/outline'
-import { adminApi, analyticsApi } from '@/services/api'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { adminApi, analyticsApi } from '../../services/api'
+import LoadingSpinner from '../../components/ui/LoadingSpinner'
 
 export default function AdminDashboard() {
   const [timeframe, setTimeframe] = useState('week')

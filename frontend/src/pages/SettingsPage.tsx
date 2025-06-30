@@ -17,9 +17,9 @@ import {
   KeyIcon,
   TrashIcon
 } from '@heroicons/react/24/outline'
-import { useAuthStore } from '@/stores/authStore'
-import { userApi, paymentApi } from '@/services/api'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { useAuthStore } from '../stores/authStore'
+import { userApi, paymentApi } from '../services/api'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const settingsSchema = z.object({
   notifications: z.object({

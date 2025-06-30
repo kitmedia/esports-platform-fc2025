@@ -12,8 +12,8 @@ import {
   CheckCircleIcon,
   ClipboardDocumentIcon
 } from '@heroicons/react/24/outline'
-import { streamingApi } from '@/services/api'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { streamingApi } from '../../services/api'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface StreamingSetupProps {
   matchId?: string

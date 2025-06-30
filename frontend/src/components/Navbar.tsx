@@ -2,9 +2,9 @@ import { Fragment } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon, BellIcon, SunIcon, MoonIcon, ComputerDesktopIcon } from '@heroicons/react/24/outline'
-import { useAuthStore } from '@/stores/authStore'
-import { useThemeStore } from '@/stores/themeStore'
-import { cn } from '@/utils/cn'
+import { useAuthStore } from '../stores/authStore'
+import { useThemeStore } from '../stores/themeStore'
+import { cn } from '../utils/cn'
 
 const navigation = [
   { name: 'Home', href: '/' },

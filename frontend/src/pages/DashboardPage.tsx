@@ -10,9 +10,9 @@ import {
   CurrencyDollarIcon,
   FireIcon
 } from '@heroicons/react/24/outline'
-import { useAuthStore } from '@/stores/authStore'
-import { tournamentApi, userApi } from '@/services/api'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { useAuthStore } from '../stores/authStore'
+import { tournamentApi, userApi } from '../services/api'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 export default function DashboardPage() {
   const { user } = useAuthStore()

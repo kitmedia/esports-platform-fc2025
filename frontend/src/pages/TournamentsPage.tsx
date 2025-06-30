@@ -9,9 +9,9 @@ import {
   CalendarIcon,
   PlusIcon 
 } from '@heroicons/react/24/outline'
-import { tournamentApi } from '@/services/api'
-import { useAuthStore } from '@/stores/authStore'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { tournamentApi } from '../services/api'
+import { useAuthStore } from '../stores/authStore'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const formatOptions = [
   { value: '', label: 'All Formats' },

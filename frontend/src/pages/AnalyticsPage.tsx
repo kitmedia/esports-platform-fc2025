@@ -12,8 +12,8 @@ import {
   CalendarIcon,
   ClockIcon
 } from '@heroicons/react/24/outline'
-import { analyticsApi } from '@/services/api'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { analyticsApi } from '../services/api'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const timeframeOptions = [
   { value: 'week', label: 'Last 7 Days' },

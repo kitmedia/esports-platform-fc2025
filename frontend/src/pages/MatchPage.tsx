@@ -13,9 +13,9 @@ import {
   XMarkIcon,
   CameraIcon
 } from '@heroicons/react/24/outline'
-import { matchApi } from '@/services/api'
-import { useAuthStore } from '@/stores/authStore'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { matchApi } from '../services/api'
+import { useAuthStore } from '../stores/authStore'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 export default function MatchPage() {
   const { id } = useParams<{ id: string }>()

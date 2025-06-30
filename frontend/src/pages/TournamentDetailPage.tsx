@@ -14,9 +14,9 @@ import {
   ClockIcon,
   CurrencyDollarIcon
 } from '@heroicons/react/24/outline'
-import { tournamentApi } from '@/services/api'
-import { useAuthStore } from '@/stores/authStore'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { tournamentApi } from '../services/api'
+import { useAuthStore } from '../stores/authStore'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 export default function TournamentDetailPage() {
   const { id } = useParams<{ id: string }>()

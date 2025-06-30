@@ -16,9 +16,9 @@ import {
   CheckIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
-import { useAuthStore } from '@/stores/authStore'
-import { userApi } from '@/services/api'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { useAuthStore } from '../stores/authStore'
+import { userApi } from '../services/api'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const profileSchema = z.object({
   displayName: z.string().min(2, 'Display name must be at least 2 characters').optional(),

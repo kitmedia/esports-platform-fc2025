@@ -10,8 +10,8 @@ import {
   PaperAirplaneIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
-import { aiApi } from '@/services/api'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { aiApi } from '../../services/api'
+import LoadingSpinner from '../ui/LoadingSpinner'
 
 interface AIAssistantProps {
   context?: 'tournament' | 'match' | 'general'

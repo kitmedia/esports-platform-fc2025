@@ -12,9 +12,9 @@ import {
   GlobeAltIcon,
   CalendarIcon
 } from '@heroicons/react/24/outline'
-import { userApi } from '@/services/api'
-import { useAuthStore } from '@/stores/authStore'
-import LoadingSpinner from '@/components/ui/LoadingSpinner'
+import { userApi } from '../services/api'
+import { useAuthStore } from '../stores/authStore'
+import LoadingSpinner from '../components/ui/LoadingSpinner'
 
 const timeframeOptions = [
   { value: 'all', label: 'All Time' },
