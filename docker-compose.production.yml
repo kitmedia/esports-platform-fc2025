@@ -2,7 +2,46 @@
 version: '3.8'
 
 services:
-  # Multiple Backend Instances for Load Balancing
+  # PostgreSQL Database
+  postgres:
+    extends:
+      file: docker-compose.yml
+      service: postgres
+    container_name: esports_postgres_prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_backup:/var/lib/postgresql/backup
+      - ./database/init:/docker-entrypoint-initdb.d
+      - ./scripts/backup-postgres.sh:/usr/local/bin/backup-postgres.sh
+
+  # Redis Cache (keeping base name for compatibility)
+  redis:
+    extends:
+      file: docker-compose.yml
+      service: redis
+    container_name: esports_redis_prod
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --masterauth ${REDIS_PASSWORD}
+
+  # Redis Master for HA
+  redis-master:
+    extends:
+      file: docker-compose.yml
+      service: redis
+    container_name: esports_redis_master
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --masterauth ${REDIS_PASSWORD}
+
+  # Redis Replica
+  redis-replica:
+    extends:
+      file: docker-compose.yml
+      service: redis
+    container_name: esports_redis_replica
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --masterauth ${REDIS_PASSWORD} --replicaof redis-master 6379
+    depends_on:
+      - redis-master
+    ports: []
+
+  # Backend Instance 1
   backend-1:
     extends:
       file: docker-compose.yml
@@ -10,6 +49,13 @@ services:
     container_name: esports_backend_1
     environment:
       INSTANCE_ID: backend-1
+      DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     
   backend-2:
     extends:
@@ -18,7 +64,14 @@ services:
     container_name: esports_backend_2
     environment:
       INSTANCE_ID: backend-2
-    ports: []  # Remove port mapping for load balancing
+      DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
+    ports: []
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   backend-3:
     extends:
@@ -27,7 +80,14 @@ services:
     container_name: esports_backend_3
     environment:
       INSTANCE_ID: backend-3
-    ports: []  # Remove port mapping for load balancing
+      DATABASE_URL: postgresql://${POSTGRES_USER:-esports_user}:${POSTGRES_PASSWORD:-esports_password}@postgres:5432/${POSTGRES_DB:-esports_platform}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_password}@redis:6379
+    ports: []
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   # Frontend Service
   frontend:
@@ -38,7 +98,10 @@ services:
     environment:
       REACT_APP_API_URL: http://164.92.239.38:3001/api
       REACT_APP_WS_URL: ws://164.92.239.38:3001
-    ports: []  # Nginx will handle frontend traffic
+      REACT_APP_STRIPE_PUBLIC_KEY: ${REACT_APP_STRIPE_PUBLIC_KEY:-}
+    ports: []
+    depends_on:
+      - backend-1
 
   # Production NGINX Load Balancer
   nginx:
@@ -60,39 +123,42 @@ services:
     networks:
       - esports_network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Redis Cluster for High Availability
-  redis-master:
+  # Prometheus Monitoring
+  prometheus:
     extends:
       file: docker-compose.yml
-      service: redis
-    container_name: esports_redis_master
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --masterauth ${REDIS_PASSWORD}
+      service: prometheus
+    container_name: esports_prometheus_prod
 
-  redis-replica:
+  # Grafana Dashboard
+  grafana:
     extends:
       file: docker-compose.yml
-      service: redis
-    container_name: esports_redis_replica
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD} --masterauth ${REDIS_PASSWORD} --replicaof redis-master 6379
+      service: grafana
+    container_name: esports_grafana_prod
     depends_on:
-      - redis-master
-    ports: []
+      - prometheus
 
-  # PostgreSQL with Backup
-  postgres:
+  # Elasticsearch for Logs
+  elasticsearch:
     extends:
       file: docker-compose.yml
-      service: postgres
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - postgres_backup:/var/lib/postgresql/backup
-      - ./database/init:/docker-entrypoint-initdb.d
-      - ./scripts/backup-postgres.sh:/usr/local/bin/backup-postgres.sh
+      service: elasticsearch
+    container_name: esports_elasticsearch_prod
+
+  # Kibana Dashboard for Logs
+  kibana:
+    extends:
+      file: docker-compose.yml
+      service: kibana
+    container_name: esports_kibana_prod
+    depends_on:
+      - elasticsearch
 
   # Automated Backup Service
   backup:
@@ -104,7 +170,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-esports_platform}
       POSTGRES_USER: ${POSTGRES_USER:-esports_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-esports_password}
-      BACKUP_SCHEDULE: "0 2 * * *"  # Daily at 2 AM
+      BACKUP_SCHEDULE: "0 2 * * *"
       BACKUP_RETENTION_DAYS: 30
     volumes:
       - postgres_backup:/backup
@@ -144,30 +210,9 @@ services:
     volumes:
       - ./ssl:/etc/letsencrypt
       - ./ssl-challenge:/var/www/certbot
-    command: certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL} --agree-tos --no-eff-email -d ${DOMAIN_NAME}
+    command: certonly --webroot --webroot-path=/var/www/certbot --email ${SSL_EMAIL:-admin@example.com} --agree-tos --no-eff-email -d ${DOMAIN_NAME:-example.com}
     profiles:
       - ssl
-
-  # Prometheus Monitoring
-  prometheus:
-    extends:
-      file: docker-compose.yml
-      service: prometheus
-    container_name: esports_prometheus_prod
-
-  # Grafana Dashboard
-  grafana:
-    extends:
-      file: docker-compose.yml
-      service: grafana
-    container_name: esports_grafana_prod
-
-  # Elasticsearch for Logs
-  elasticsearch:
-    extends:
-      file: docker-compose.yml
-      service: elasticsearch
-    container_name: esports_elasticsearch_prod
 
   # Log Aggregation
   filebeat:
