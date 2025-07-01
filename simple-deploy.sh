@@ -22,6 +22,22 @@ JWT_REFRESH_SECRET=your_super_secure_refresh_jwt_secret_different
 # Basic settings
 NODE_ENV=production
 PORT=3001
+
+# Third party services (dummy values)
+OPENAI_API_KEY=sk-dummy-key
+CLAUDE_API_KEY=sk-ant-dummy-key
+STRIPE_SECRET_KEY=sk_test_dummy
+DISCORD_CLIENT_ID=dummy_client_id
+DISCORD_CLIENT_SECRET=dummy_client_secret
+TWITCH_CLIENT_ID=dummy_twitch_id
+TWITCH_CLIENT_SECRET=dummy_twitch_secret
+EMAIL_HOST=localhost
+EMAIL_PORT=587
+EMAIL_USER=test@example.com
+EMAIL_PASS=dummy_password
+CLOUDINARY_CLOUD_NAME=dummy_cloud
+CLOUDINARY_API_KEY=dummy_api_key
+CLOUDINARY_API_SECRET=dummy_api_secret
 EOF
 
 # Stop any running containers
