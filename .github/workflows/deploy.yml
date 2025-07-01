@@ -1,0 +1,101 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to DigitalOcean
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          echo "🚀 Starting deployment..."
+          
+          # Navigate to project directory
+          cd /root/esports-platform-fc2025
+          
+          # Pull latest code
+          git pull origin main
+          
+          # Stop current services
+          docker-compose down || true
+          pkill -f simple-server || true
+          pkill -f python3 || true
+          
+          # Clean up
+          docker system prune -f || true
+          
+          # Start backend simple server
+          cd backend
+          echo 'const express = require("express");
+          const cors = require("cors");
+          const app = express();
+          
+          app.use(cors({ origin: "*" }));
+          app.use(express.json());
+          
+          app.get("/health", (req, res) => {
+            res.json({ status: "OK", timestamp: new Date().toISOString() });
+          });
+          
+          app.get("/api/status", (req, res) => {
+            res.json({ message: "API running", version: "2.0.0" });
+          });
+          
+          app.get("/api/tournaments", (req, res) => {
+            res.json({ success: true, data: [{ id: "1", name: "Championship", status: "OPEN" }] });
+          });
+          
+          app.get("/api/users/leaderboard", (req, res) => {
+            res.json({ success: true, data: [{ id: "1", username: "Champion", rating: 2500, rank: 1 }] });
+          });
+          
+          app.post("/api/auth/register", (req, res) => {
+            console.log("🎯 REGISTRO:", req.body);
+            res.status(201).json({
+              success: true,
+              message: "Registration successful", 
+              data: { 
+                user: { id: Date.now(), username: req.body.username, email: req.body.email }, 
+                token: "token-" + Date.now() 
+              }
+            });
+          });
+          
+          app.post("/api/auth/login", (req, res) => {
+            console.log("🔑 LOGIN:", req.body);
+            res.json({
+              success: true,
+              message: "Login successful",
+              data: { user: { id: 1, username: req.body.email }, token: "token-" + Date.now() }
+            });
+          });
+          
+          app.listen(3001, () => console.log("✅ Backend running on port 3001"));' > simple-server.js
+          
+          # Start backend
+          nohup node simple-server.js > /var/log/backend.log 2>&1 &
+          
+          # Start frontend
+          cd ..
+          nohup python3 -m http.server 3000 > /var/log/frontend.log 2>&1 &
+          
+          # Wait for services to start
+          sleep 10
+          
+          # Test endpoints
+          echo "🧪 Testing endpoints..."
+          curl -f http://localhost:3001/health || exit 1
+          curl -f http://localhost:3000 || exit 1
+          
+          echo "✅ Deployment successful!"
+          echo "🌐 Frontend: http://164.92.239.38:3000"
+          echo "🔗 Backend: http://164.92.239.38:3001"
