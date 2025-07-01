@@ -2,6 +2,15 @@
 
 echo "🚀 Fixing Production Deployment..."
 
+# Create .env.production if it doesn't exist
+if [ ! -f .env.production ]; then
+    echo "Creating .env.production file..."
+    cat > .env.production << 'EOF'
+REACT_APP_STRIPE_PUBLIC_KEY=pk_test_51234567890
+OBS_WEBSOCKET_URL=ws://164.92.239.38:4444
+EOF
+fi
+
 # Ensure environment variables are loaded
 export $(cat .env.production | grep -v '^#' | xargs)
 
