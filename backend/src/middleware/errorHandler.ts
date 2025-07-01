@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { ZodError } from 'zod'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
-import { logger } from '@/utils/logger'
 
 export interface AppError extends Error {
   statusCode: number
@@ -93,7 +92,7 @@ const handlePrismaError = (error: PrismaClientKnownRequestError): CustomError =>
     case 'P2022':
       return new NotFoundError('Column does not exist')
     default:
-      logger.error('Unhandled Prisma error:', { code: error.code, meta: error.meta })
+      console.error('Unhandled Prisma error:', { code: error.code, meta: error.meta })
       return new CustomError('Database operation failed', 500, 'DATABASE_ERROR')
   }
 }
@@ -169,9 +168,9 @@ export const errorHandler = (
   }
 
   if (error.statusCode >= 500) {
-    logger.error('Server error:', errorDetails)
+    console.error('Server error:', errorDetails)
   } else {
-    logger.warn('Client error:', errorDetails)
+    console.warn('Client error:', errorDetails)
   }
 
   // Send error response
@@ -206,5 +205,6 @@ export const notFoundHandler = (req: Request, res: Response, next: NextFunction)
 
 export const asyncHandler = (fn: Function) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next)
-}
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
