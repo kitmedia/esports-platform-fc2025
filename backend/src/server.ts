@@ -3,6 +3,17 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 
+// Import routes
+import authRoutes from './routes/auth';
+import userRoutes from './routes/users';
+import tournamentRoutes from './routes/tournaments';
+import matchRoutes from './routes/matches';
+import paymentRoutes from './routes/payments';
+import streamingRoutes from './routes/streaming';
+import aiRoutes from './routes/ai';
+import arbitrationRoutes from './routes/arbitration';
+import adminRoutes from './routes/admin';
+
 dotenv.config();
 
 const app = express();
@@ -12,6 +23,7 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -30,6 +42,17 @@ app.get('/api/status', (req, res) => {
     environment: process.env.NODE_ENV || 'development'
   });
 });
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/tournaments', tournamentRoutes);
+app.use('/api/matches', matchRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/streaming', streamingRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/arbitration', arbitrationRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Start server
 app.listen(PORT, () => {
