@@ -333,8 +333,9 @@ app.post('/api/auth/logout', authMiddleware, async (req: any, res) => {
 // Tournaments endpoint (basic)
 app.get('/api/tournaments', async (req, res) => {
   try {
+    const limit = parseInt(req.query.limit as string) || 10;
     const tournaments = await prisma.tournament.findMany({
-      take: 10,
+      take: Math.min(limit, 50), // Maximum 50 tournaments
       orderBy: { createdAt: 'desc' },
       include: {
         organizer: {
