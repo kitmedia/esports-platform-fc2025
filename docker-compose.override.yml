@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  postgres:
+    ports:
+      - "5433:5432"  # Usar puerto alternativo
+    
+  redis:
+    ports:
+      - "6380:6379"  # Usar puerto alternativo
+      
+  backend:
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/esports_db
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - NODE_ENV=production
+    depends_on:
+      - postgres
+      - redis
