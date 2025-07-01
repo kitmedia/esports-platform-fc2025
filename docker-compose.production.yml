@@ -39,9 +39,15 @@ services:
       file: docker-compose.yml
       service: frontend
     container_name: esports_frontend_prod
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://164.92.239.38:3001
+        VITE_WS_URL: ws://164.92.239.38:3001
     environment:
-      REACT_APP_API_URL: http://164.92.239.38:3001/api
-      REACT_APP_WS_URL: ws://164.92.239.38:3001
+      VITE_API_URL: http://164.92.239.38:3001
+      VITE_WS_URL: ws://164.92.239.38:3001
       REACT_APP_STRIPE_PUBLIC_KEY: ${REACT_APP_STRIPE_PUBLIC_KEY:-}
     ports: []
 
